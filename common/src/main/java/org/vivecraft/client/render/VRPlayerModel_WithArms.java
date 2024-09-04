@@ -132,19 +132,27 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             return;
         }
 
+        // rotinfo.reverse setting reverses calculations for left and right,
+        // but if minecraft skin setting has main hand as left, then we don't want that swap applied to the skin.
+        boolean reverseArms = rotinfo.reverse && pEntity.getMainArm() == HumanoidArm.LEFT;
+        Vec3 rotinfo$leftArmRot = reverseArms ? rotinfo.rightArmRot : rotinfo.leftArmRot;
+        Vec3 rotinfo$rightArmRot = reverseArms ? rotinfo.leftArmRot : rotinfo.rightArmRot;
+        Vec3 vec3 = reverseArms ? rotinfo.rightArmPos : rotinfo.leftArmPos;
+        Vec3 vec32 = reverseArms ? rotinfo.leftArmPos : rotinfo.rightArmPos;
+
         double d0 = -1.501F * rotinfo.heightScale;
         float f = (float) Math.toRadians(pEntity.getYRot());
         float f1 = (float) Math.atan2(-rotinfo.headRot.x, -rotinfo.headRot.z);
         float f2 = (float) Math.asin(rotinfo.headRot.y / rotinfo.headRot.length());
-        float f3 = (float) Math.atan2(-rotinfo.leftArmRot.x, -rotinfo.leftArmRot.z);
-        float f4 = (float) Math.asin(rotinfo.leftArmRot.y / rotinfo.leftArmRot.length());
-        float f5 = (float) Math.atan2(-rotinfo.rightArmRot.x, -rotinfo.rightArmRot.z);
-        float f6 = (float) Math.asin(rotinfo.rightArmRot.y / rotinfo.rightArmRot.length());
+        float f3 = (float) Math.atan2(-rotinfo$leftArmRot.x, -rotinfo$leftArmRot.z);
+        float f4 = (float) Math.asin(rotinfo$leftArmRot.y / rotinfo$leftArmRot.length());
+        float f5 = (float) Math.atan2(-rotinfo$rightArmRot.x, -rotinfo$rightArmRot.z);
+        float f6 = (float) Math.asin(rotinfo$rightArmRot.y / rotinfo$rightArmRot.length());
         double d1 = rotinfo.getBodyYawRadians();
 
         this.laying = this.swimAmount > 0.0F || pEntity.isFallFlying() && !pEntity.isAutoSpinAttack();
 
-        if (!rotinfo.reverse) {
+        if (!rotinfo.reverse || reverseArms) {
             this.rightShoulder.setPos(-Mth.cos(this.body.yRot) * 5.0F, this.slim ? 2.5F : 2.0F, Mth.sin(this.body.yRot) * 5.0F);
             this.leftShoulder.setPos(Mth.cos(this.body.yRot) * 5.0F, this.slim ? 2.5F : 2.0F, -Mth.sin(this.body.yRot) * 5.0F);
         } else {
@@ -157,8 +165,6 @@ public class VRPlayerModel_WithArms<T extends LivingEntity> extends VRPlayerMode
             this.leftShoulder.y += 3.2F;
         }
 
-        Vec3 vec3 = rotinfo.leftArmPos;
-        Vec3 vec32 = rotinfo.rightArmPos;
         if (Xplat.isModLoaded("pehkui")) {
             // remove pehkui scale from that, since the whole entity is scaled
             vec3 = vec3.scale(1.0F / PehkuiHelper.getPlayerScale(pEntity, Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false)));
